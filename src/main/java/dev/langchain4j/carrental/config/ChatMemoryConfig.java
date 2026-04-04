@@ -17,10 +17,10 @@ public class ChatMemoryConfig {
     }
 
     @Bean
-    ChatMemoryProvider chatMemoryProvider(TokenCountEstimator tokenizer) {
+    ChatMemoryProvider chatMemoryProvider(TokenCountEstimator tokenCountEstimator) {
         return memoryId -> TokenWindowChatMemory.builder()
                 .id(memoryId)
-                .maxTokens(5000, tokenizer)
+                .maxTokens(5000, tokenCountEstimator)
                 .build();
     }
 
