@@ -1,4 +1,4 @@
-package dev.langchain4j.example.customersupportagent.booking;
+package dev.langchain4j.carrental.booking;
 
 public class BookingNotFoundException extends RuntimeException {
 

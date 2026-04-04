@@ -1,4 +1,4 @@
-package dev.langchain4j.example.customersupportagent.booking;
+package dev.langchain4j.carrental.booking;
 
 import dev.langchain4j.agent.tool.Tool;
 import org.springframework.stereotype.Component;

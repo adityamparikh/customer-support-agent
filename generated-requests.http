@@ -1,0 +1,19 @@
+###
+GET http://localhost:8080/chat?
+    sessionId=1&
+    userMessage=Hi, when does my booking begin?
+
+<> 2026-04-04T115210.200.txt
+
+###
+GET http://localhost:8080/chat?sessionId=1&userMessage=My booking number is MS-777.
+
+###
+GET http://localhost:8080/chat?sessionId=1&userMessage=My name is John Doe.
+
+
+###
+GET http://localhost:8080/chat?sessionId=1&userMessage=Please cancel my booking.
+
+###
+GET http://localhost:8080/chat?sessionId=1&userMessage=Yes, cancel it.

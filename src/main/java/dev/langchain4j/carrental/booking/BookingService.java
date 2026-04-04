@@ -1,7 +1,7 @@
-package dev.langchain4j.example.customersupportagent.booking;
+package dev.langchain4j.carrental.booking;
 
 
-import dev.langchain4j.example.customersupportagent.customer.Customer;
+import dev.langchain4j.carrental.customer.Customer;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -34,6 +34,12 @@ public class BookingService {
 
     public void cancelBooking(String bookingNumber, String customerName, String customerSurname) {
         ensureExists(bookingNumber, customerName, customerSurname);
+
+        Booking booking = BOOKINGS.get(bookingNumber);
+        if (!booking.bookingBeginDate().isAfter(LocalDate.now())) {
+            throw new IllegalStateException("Cannot cancel booking " + bookingNumber
+                    + " because it has already started or completed");
+        }
 
         // Imitating booking cancellation
         BOOKINGS.remove(bookingNumber);

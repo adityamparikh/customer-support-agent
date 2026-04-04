@@ -1,4 +1,4 @@
-package dev.langchain4j.example.customersupportagent;
+package dev.langchain4j.carrental;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

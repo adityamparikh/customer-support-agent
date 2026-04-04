@@ -1,6 +1,6 @@
-package dev.langchain4j.example.customersupportagent.booking;
+package dev.langchain4j.carrental.booking;
 
-import dev.langchain4j.example.customersupportagent.customer.Customer;
+import dev.langchain4j.carrental.customer.Customer;
 
 import java.time.LocalDate;
 

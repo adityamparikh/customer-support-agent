@@ -1,4 +1,4 @@
-package dev.langchain4j.example.customersupportagent;
+package dev.langchain4j.carrental;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
