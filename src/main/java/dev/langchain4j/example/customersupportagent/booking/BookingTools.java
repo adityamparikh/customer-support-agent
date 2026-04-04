@@ -1,8 +1,6 @@
-package dev.langchain4j.example.customersupportagent;
+package dev.langchain4j.example.customersupportagent.booking;
 
 import dev.langchain4j.agent.tool.Tool;
-import dev.langchain4j.example.customersupportagent.booking.Booking;
-import dev.langchain4j.example.customersupportagent.booking.BookingService;
 import org.springframework.stereotype.Component;
 
 @Component
