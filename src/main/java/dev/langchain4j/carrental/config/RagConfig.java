@@ -5,9 +5,12 @@ import dev.langchain4j.data.document.parser.TextDocumentParser;
 import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import dev.langchain4j.model.TokenCountEstimator;
 import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.model.openai.OpenAiChatModelName;
+import dev.langchain4j.model.openai.OpenAiTokenCountEstimator;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.EmbeddingStoreIngestor;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 
@@ -15,6 +18,11 @@ import java.io.IOException;
 
 @Configuration
 public class RagConfig {
+
+    @Bean
+    TokenCountEstimator tokenCountEstimator() {
+        return new OpenAiTokenCountEstimator(OpenAiChatModelName.GPT_5);
+    }
 
     @EventListener(ApplicationReadyEvent.class)
     void ingestDocuments(ApplicationReadyEvent event) throws IOException {
@@ -38,5 +46,4 @@ public class RagConfig {
                 .build()
                 .ingest(document);
     }
-
 }
