@@ -1,6 +1,6 @@
 # Miles of Smiles - Customer Support Agent
 
-An AI-powered customer support agent for a car rental company, built with [LangChain4j](https://docs.langchain4j.dev/) and Spring Boot.
+An AI-powered customer support agent for a car rental company, built with [LangChain4j](https://docs.langchain4j.dev/) and Spring Boot. Based on the [langchain4j-examples/customer-support-agent-example](https://github.com/langchain4j/langchain4j-examples/tree/main/customer-support-agent-example).
 
 The agent (named **Roger**) can look up booking details, cancel reservations, and answer policy questions using RAG over the company's terms of use.
 
