@@ -17,6 +17,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,7 +25,13 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+/**
+ * Live integration tests: every run calls the paid OpenAI (agent, embeddings) and Anthropic (judge) APIs.
+ * They only run through the opt-in Maven profile, {@code ./mvnw verify -Plive-it}, which sets the
+ * {@code live-it} system property. See docs/specs/0001-live-integration-tests-opt-in.md.
+ */
 @SpringBootTest
+@EnabledIfSystemProperty(named = "live-it", matches = "true")
 @EnabledIfEnvironmentVariable(named = "OPENAI_API_KEY", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "ANTHROPIC_API_KEY", matches = ".+")
 class CustomerSupportAgentIT {

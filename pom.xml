@@ -20,6 +20,12 @@
     <properties>
         <java.version>25</java.version>
         <langchain4j.version>1.12.2-beta22</langchain4j.version>
+        <!--
+            The integration tests call the paid OpenAI and Anthropic APIs, so they are skipped
+            unless the build is run with the opt-in profile: ./mvnw verify -Plive-it
+            See docs/specs/0001-live-integration-tests-opt-in.md and docs/adr/0004-paid-tests-are-opt-in.md.
+        -->
+        <skipITs>true</skipITs>
         <errorprone.version>2.53.0</errorprone.version>
         <spotless.version>3.11.0</spotless.version>
         <palantir-java-format.version>2.103.0</palantir-java-format.version>
@@ -134,5 +140,57 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!--
+            Opt-in profile for the integration tests that call the live OpenAI and Anthropic APIs.
+            Every run spends API credit. Without this profile `./mvnw install` makes no paid calls.
+        -->
+        <profile>
+            <id>live-it</id>
+            <properties>
+                <skipITs>false</skipITs>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>require-live-api-keys</id>
+                                <goals>
+                                    <goal>enforce</goal>
+                                </goals>
+                                <configuration>
+                                    <rules>
+                                        <requireEnvironmentVariable>
+                                            <variableName>OPENAI_API_KEY</variableName>
+                                            <regex>.+</regex>
+                                            <message>-Plive-it needs OPENAI_API_KEY (agent and embeddings).</message>
+                                        </requireEnvironmentVariable>
+                                        <requireEnvironmentVariable>
+                                            <variableName>ANTHROPIC_API_KEY</variableName>
+                                            <regex>.+</regex>
+                                            <message>-Plive-it needs ANTHROPIC_API_KEY (LLM-as-a-judge).</message>
+                                        </requireEnvironmentVariable>
+                                    </rules>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <live-it>true</live-it>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
