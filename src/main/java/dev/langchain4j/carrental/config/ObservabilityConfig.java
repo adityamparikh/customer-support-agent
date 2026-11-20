@@ -10,8 +10,7 @@ import org.springframework.context.annotation.Configuration;
 public class ObservabilityConfig {
 
     @Bean
-    public ObservationChatModelListener listener(ObservationRegistry observationRegistry,
-                                                 MeterRegistry meterRegistry) {
+    public ObservationChatModelListener listener(ObservationRegistry observationRegistry, MeterRegistry meterRegistry) {
         return new ObservationChatModelListener(observationRegistry, meterRegistry);
     }
 }

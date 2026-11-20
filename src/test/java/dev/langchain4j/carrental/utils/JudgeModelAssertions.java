@@ -1,5 +1,11 @@
 package dev.langchain4j.carrental.utils;
 
+import static dev.langchain4j.internal.ValidationUtils.ensureNotEmpty;
+import static dev.langchain4j.internal.ValidationUtils.ensureNotNull;
+import static dev.langchain4j.model.chat.request.ResponseFormatType.JSON;
+import static java.util.Arrays.asList;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
@@ -9,31 +15,20 @@ import dev.langchain4j.model.chat.request.ChatRequestParameters;
 import dev.langchain4j.model.chat.request.ResponseFormat;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.service.output.JsonSchemas;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import static dev.langchain4j.internal.ValidationUtils.ensureNotEmpty;
-import static dev.langchain4j.internal.ValidationUtils.ensureNotNull;
-import static dev.langchain4j.model.chat.request.ResponseFormatType.JSON;
-import static java.util.Arrays.asList;
-import static org.junit.jupiter.api.Assertions.fail;
 
 public class JudgeModelAssertions {
 
     private enum ConditionAssessmentResult {
-
-        SATISFIED, NOT_SATISFIED, NOT_SURE
+        SATISFIED,
+        NOT_SATISFIED,
+        NOT_SURE
     }
 
-    private record ConditionAssessment(
-            int conditionIndex,
-            String reasoning,
-            ConditionAssessmentResult result) {
-    }
+    private record ConditionAssessment(int conditionIndex, String reasoning, ConditionAssessmentResult result) {}
 
-    private record ConditionAssessments(List<ConditionAssessment> conditionAssessments) {
-    }
+    private record ConditionAssessments(List<ConditionAssessment> conditionAssessments) {}
 
     private static final JsonMapper JSON_MAPPER = new JsonMapper();
 
@@ -90,10 +85,8 @@ public class JudgeModelAssertions {
                                     Does the following text satisfy the following conditions?
                                     %s
                                     Provide index, reasoning and assessment result for each condition.
-                                    """.formatted(conditionsFormatted)
-                            ),
-                            UserMessage.from("<text>%s</text>".formatted(text))
-                    )
+                                    """.formatted(conditionsFormatted)),
+                            UserMessage.from("<text>%s</text>".formatted(text)))
                     .parameters(ChatRequestParameters.builder()
                             .responseFormat(RESPONSE_FORMAT)
                             .build())
@@ -113,9 +106,9 @@ public class JudgeModelAssertions {
                                 Condition %s: %s
                                 Reasoning: %s
                                 """.formatted(
-                                assessment.conditionIndex, conditions.get(assessment.conditionIndex),
-                                assessment.reasoning
-                        ));
+                                        assessment.conditionIndex,
+                                        conditions.get(assessment.conditionIndex),
+                                        assessment.reasoning));
                     }
                 }
 

@@ -23,8 +23,7 @@ public class CustomerSupportAgentController {
     }
 
     @GetMapping("/chat")
-    public String chat(@RequestParam String sessionId,
-                       @RequestParam String userMessage) {
+    public String chat(@RequestParam String sessionId, @RequestParam String userMessage) {
         Result<String> result = customerSupportAgent.answer(sessionId, userMessage);
         return result.content();
     }

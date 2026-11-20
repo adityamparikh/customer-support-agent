@@ -1,12 +1,11 @@
 package dev.langchain4j.carrental.booking;
 
-
 import dev.langchain4j.carrental.customer.Customer;
-import org.springframework.stereotype.Component;
-
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @Component
 public class BookingService {
@@ -14,16 +13,10 @@ public class BookingService {
     private static final Customer CUSTOMER = new Customer("John", "Doe");
 
     private static final String BOOKING_NUMBER = "MS-777";
-    private static final Booking BOOKING = new Booking(
-            BOOKING_NUMBER,
-            LocalDate.of(2025, 12, 13),
-            LocalDate.of(2025, 12, 31),
-            CUSTOMER
-    );
+    private static final Booking BOOKING =
+            new Booking(BOOKING_NUMBER, LocalDate.of(2025, 12, 13), LocalDate.of(2025, 12, 31), CUSTOMER);
 
-    private static final Map<String, Booking> BOOKINGS = new HashMap<>() {{
-        put(BOOKING_NUMBER, BOOKING);
-    }};
+    private static final Map<String, Booking> BOOKINGS = new HashMap<>(Map.of(BOOKING_NUMBER, BOOKING));
 
     public Booking getBookingDetails(String bookingNumber, String customerName, String customerSurname) {
         ensureExists(bookingNumber, customerName, customerSurname);
@@ -36,9 +29,9 @@ public class BookingService {
         ensureExists(bookingNumber, customerName, customerSurname);
 
         Booking booking = BOOKINGS.get(bookingNumber);
-        if (!booking.bookingBeginDate().isAfter(LocalDate.now())) {
-            throw new IllegalStateException("Cannot cancel booking " + bookingNumber
-                    + " because it has already started or completed");
+        if (!booking.bookingBeginDate().isAfter(LocalDate.now(ZoneId.systemDefault()))) {
+            throw new IllegalStateException(
+                    "Cannot cancel booking " + bookingNumber + " because it has already started or completed");
         }
 
         // Imitating booking cancellation
