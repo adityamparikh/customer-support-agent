@@ -88,7 +88,8 @@ class CustomerSupportAgentWiringTests {
         assertThat(request.messages().getFirst()).isInstanceOf(SystemMessage.class);
         assertThat(((SystemMessage) request.messages().getFirst()).text())
                 .contains("Your name is Roger")
-                .contains("When asked to cancel the booking, first make sure it exists");
+                .contains("first make sure it exists by calling getBookingDetails")
+                .contains("Do not call cancelBooking until the customer has confirmed");
         assertThat(request.toolSpecifications())
                 .extracting(ToolSpecification::name)
                 .containsExactlyInAnyOrder("getBookingDetails", "cancelBooking");
