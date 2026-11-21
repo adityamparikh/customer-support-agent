@@ -1,16 +1,15 @@
 package dev.langchain4j.carrental.utils;
 
-import dev.langchain4j.rag.content.Content;
-import dev.langchain4j.service.Result;
-import dev.langchain4j.service.tool.ToolExecution;
-import org.assertj.core.api.AbstractAssert;
-
-import java.util.List;
-import java.util.Set;
-
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.util.IterableUtil.isNullOrEmpty;
+
+import dev.langchain4j.rag.content.Content;
+import dev.langchain4j.service.Result;
+import dev.langchain4j.service.tool.ToolExecution;
+import java.util.List;
+import java.util.Set;
+import org.assertj.core.api.AbstractAssert;
 
 /**
  * Custom AssertJ assertions for {@link Result} class.
@@ -39,12 +38,13 @@ public class ResultAssert extends AbstractAssert<ResultAssert, Result<?>> {
                 .collect(toSet());
 
         if (!executedToolNames.contains(toolName)) {
-            failWithMessage("Expected tool <%s> to be executed, but found different tools: <%s>",
-                    toolName, executedToolNames);
+            failWithMessage(
+                    "Expected tool <%s> to be executed, but found different tools: <%s>", toolName, executedToolNames);
         }
 
         if (executedToolNames.size() > 1) {
-            failWithMessage("Expected only tool <%s> to be executed, but additional tools were executed: <%s>",
+            failWithMessage(
+                    "Expected only tool <%s> to be executed, but additional tools were executed: <%s>",
                     toolName, executedToolNames);
         }
 
@@ -72,14 +72,13 @@ public class ResultAssert extends AbstractAssert<ResultAssert, Result<?>> {
             failWithMessage("Expected sources to be retrieved, but no sources were found");
         }
 
-        List<String> sourceTexts = sources.stream()
-                .map(source -> source.textSegment().text())
-                .toList();
+        List<String> sourceTexts =
+                sources.stream().map(source -> source.textSegment().text()).toList();
 
         if (sourceTexts.stream().noneMatch(sourceText -> sourceText.contains(text))) {
-            failWithMessage("Expected to find text <%s> in sources, but found following texts:\n%s",
-                    text,
-                    sourceTexts.stream().collect(joining("\n- ", "- ", "")));
+            failWithMessage(
+                    "Expected to find text <%s> in sources, but found following texts:\n%s",
+                    text, sourceTexts.stream().collect(joining("\n- ", "- ", "")));
         }
 
         return this;

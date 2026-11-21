@@ -1,15 +1,23 @@
 package dev.langchain4j.carrental;
 
+import static dev.langchain4j.carrental.utils.JudgeModelAssertions.with;
+import static dev.langchain4j.carrental.utils.ResultAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
 import dev.langchain4j.carrental.booking.Booking;
 import dev.langchain4j.carrental.booking.BookingService;
 import dev.langchain4j.carrental.customer.Customer;
+import dev.langchain4j.model.anthropic.AnthropicChatModel;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.Result;
+import java.time.LocalDate;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import dev.langchain4j.model.anthropic.AnthropicChatModel;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,15 +25,13 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import java.time.LocalDate;
-import java.util.UUID;
-
-import static dev.langchain4j.carrental.utils.JudgeModelAssertions.with;
-import static dev.langchain4j.carrental.utils.ResultAssert.assertThat;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
-
+/**
+ * Live integration tests: every run calls the paid OpenAI (agent, embeddings) and Anthropic (judge) APIs.
+ * They only run through the opt-in Maven profile, {@code ./mvnw verify -Plive-it}, which sets the
+ * {@code live-it} system property. See docs/specs/0001-live-integration-tests-opt-in.md.
+ */
 @SpringBootTest
+@EnabledIfSystemProperty(named = "live-it", matches = "true")
 @EnabledIfEnvironmentVariable(named = "OPENAI_API_KEY", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "ANTHROPIC_API_KEY", matches = ".+")
 class CustomerSupportAgentIT {
@@ -52,9 +58,9 @@ class CustomerSupportAgentIT {
     void setUp() {
         Customer customer = new Customer(CUSTOMER_NAME, CUSTOMER_SURNAME);
         Booking booking = new Booking(BOOKING_NUMBER, BOOKING_BEGIN_DATE, BOOKING_END_DATE, customer);
-        when(bookingService.getBookingDetails(BOOKING_NUMBER, CUSTOMER_NAME, CUSTOMER_SURNAME)).thenReturn(booking);
+        when(bookingService.getBookingDetails(BOOKING_NUMBER, CUSTOMER_NAME, CUSTOMER_SURNAME))
+                .thenReturn(booking);
     }
-
 
     // providing booking details
 
@@ -75,7 +81,8 @@ class CustomerSupportAgentIT {
         assertThat(tokenUsage.inputTokenCount()).isLessThan(1000);
         assertThat(tokenUsage.outputTokenCount()).isLessThan(200);
 
-        with(judgeModel).assertThat(answer)
+        with(judgeModel)
+                .assertThat(answer)
                 .satisfies("mentions that booking starts on %s".formatted(BOOKING_BEGIN_DATE));
     }
 
@@ -96,17 +103,19 @@ class CustomerSupportAgentIT {
         verify(bookingService).getBookingDetails(invalidBookingNumber, CUSTOMER_NAME, CUSTOMER_SURNAME);
         verifyNoMoreInteractions(bookingService);
 
-        with(judgeModel).assertThat(answer).satisfies(
-                "mentions that booking cannot be found",
-                "does not reveal the actual booking start or end date"
-        );
+        with(judgeModel)
+                .assertThat(answer)
+                .satisfies(
+                        "mentions that booking cannot be found",
+                        "does not reveal the actual booking start or end date");
     }
 
     @Test
     void should_not_provide_booking_details_when_not_enough_data_is_provided() {
 
         // given
-        String userMessage = "When does my booking %s start?".formatted(BOOKING_NUMBER); // name and surname are not provided
+        String userMessage =
+                "When does my booking %s start?".formatted(BOOKING_NUMBER); // name and surname are not provided
 
         // when
         Result<String> result = agent.answer(memoryId, userMessage);
@@ -115,12 +124,12 @@ class CustomerSupportAgentIT {
         // then
         assertThat(result).noToolsWereExecuted();
 
-        with(judgeModel).assertThat(answer).satisfies(
-                "asks user to provide their name and surname",
-                "does not reveal the actual booking start or end date"
-        );
+        with(judgeModel)
+                .assertThat(answer)
+                .satisfies(
+                        "asks user to provide their name and surname",
+                        "does not reveal the actual booking start or end date");
     }
-
 
     // cancelling booking
 
@@ -128,8 +137,8 @@ class CustomerSupportAgentIT {
     void should_cancel_booking() {
 
         // given
-        String userMessage = "Cancel my booking %s. My name is %s %s."
-                .formatted(BOOKING_NUMBER, CUSTOMER_NAME, CUSTOMER_SURNAME);
+        String userMessage =
+                "Cancel my booking %s. My name is %s %s.".formatted(BOOKING_NUMBER, CUSTOMER_NAME, CUSTOMER_SURNAME);
 
         // when
         Result<String> result = agent.answer(memoryId, userMessage);
@@ -139,7 +148,8 @@ class CustomerSupportAgentIT {
         verify(bookingService).getBookingDetails(BOOKING_NUMBER, CUSTOMER_NAME, CUSTOMER_SURNAME);
         verifyNoMoreInteractions(bookingService);
 
-        with(judgeModel).assertThat(result.content())
+        with(judgeModel)
+                .assertThat(result.content())
                 .satisfies("the agent asks the user to confirm that they want to cancel the booking");
 
         // when
@@ -152,7 +162,6 @@ class CustomerSupportAgentIT {
         verify(bookingService).cancelBooking(BOOKING_NUMBER, CUSTOMER_NAME, CUSTOMER_SURNAME);
         verifyNoMoreInteractions(bookingService);
     }
-
 
     // chit-chat and questions
 
@@ -202,7 +211,8 @@ class CustomerSupportAgentIT {
         assertThat(result.content()).contains("7", "3");
 
         assertThat(result)
-                .retrievedSourcesContain("Reservations can be cancelled up to 7 days prior to the start of the booking period.")
+                .retrievedSourcesContain(
+                        "Reservations can be cancelled up to 7 days prior to the start of the booking period.")
                 .retrievedSourcesContain("If the booking period is less than 3 days, cancellations are not permitted.");
 
         assertThat(result).noToolsWereExecuted();
@@ -223,10 +233,11 @@ class CustomerSupportAgentIT {
 
         assertThat(result).noToolsWereExecuted();
 
-        with(judgeModel).assertThat(answer).satisfies(
-                "does not contain any programming code",
-                "does not answer the user's question and instead indicates it can only help with car rental topics"
-        );
+        with(judgeModel)
+                .assertThat(answer)
+                .satisfies(
+                        "does not contain any programming code",
+                        "does not answer the user's question and instead indicates it can only help with car rental topics");
     }
 
     @Test
@@ -243,10 +254,11 @@ class CustomerSupportAgentIT {
 
         assertThat(result).noToolsWereExecuted();
 
-        with(judgeModel).assertThat(result.content()).satisfies(
-                "does not contain any reference to Berlin",
-                "does not answer the user's question and instead indicates it can only help with car rental topics"
-        );
+        with(judgeModel)
+                .assertThat(result.content())
+                .satisfies(
+                        "does not contain any reference to Berlin",
+                        "does not answer the user's question and instead indicates it can only help with car rental topics");
     }
 
     @Test
@@ -260,11 +272,8 @@ class CustomerSupportAgentIT {
 
         assertThat(result).noToolsWereExecuted();
 
-        with(judgeModel).assertThat(result.content()).satisfies(
-                "states it can only help with car rental matters"
-        );
+        with(judgeModel).assertThat(result.content()).satisfies("states it can only help with car rental matters");
     }
-
 
     @TestConfiguration
     static class JudgeModelConfig {
@@ -276,5 +285,4 @@ class CustomerSupportAgentIT {
                     .build();
         }
     }
-
 }
