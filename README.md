@@ -7,15 +7,19 @@ The agent (named **Roger**) can look up booking details, cancel reservations, an
 ## Prerequisites
 
 - Java 25+
-- An [OpenAI API key](https://platform.openai.com/api-keys)
+- An [OpenAI API key](https://platform.openai.com/api-keys) to run the app
+- An [Anthropic API key](https://console.anthropic.com/) only for the paid live integration tests
 
 ## Quick Start
 
 ```bash
-export OPENAI_API_KEY=sk-...
+cp .env.example .env        # fill in OPENAI_API_KEY; .env is gitignored
+set -a; . ./.env; set +a
 
 ./mvnw spring-boot:run
 ```
+
+Startup embeds the terms of use with the OpenAI embedding model, so every start makes a few paid calls.
 
 The app starts on `http://localhost:8080`.
 
@@ -38,16 +42,33 @@ The `sessionId` parameter maintains conversation context across requests, enabli
 
 ## Running Tests
 
-Integration tests use an **LLM-as-a-judge** pattern with Anthropic Claude Haiku to semantically evaluate the agent's responses.
-
 ```bash
-export OPENAI_API_KEY=sk-...
-export ANTHROPIC_API_KEY=sk-ant-...
-
 ./mvnw install
 ```
 
-Tests are skipped automatically when API keys are not set.
+This needs no API keys and makes no paid calls. It compiles with Error Prone (`-Werror`), runs the
+keyless unit and wiring tests, and checks formatting (fix with `./mvnw spotless:apply`). The wiring
+tests load the real Spring context with the OpenAI models replaced by offline stand-ins.
+
+The live integration tests talk to the real agent and use an **LLM-as-a-judge** pattern with
+Anthropic Claude Haiku to evaluate its replies. They spend OpenAI and Anthropic credit, so they only
+run with the `live-it` profile, which fails fast if either key is missing:
+
+```bash
+set -a; . ./.env; set +a    # OPENAI_API_KEY and ANTHROPIC_API_KEY
+
+./mvnw verify -Plive-it
+./mvnw verify -Plive-it -Dit.test="CustomerSupportAgentIT#should_cancel_booking"
+```
+
+CI (`.github/workflows/ci.yml`) runs `./mvnw install` on every pull request; the live tests are a manual job.
+
+## Project Docs
+
+- `CLAUDE.md`: commands, layout, rules and the ask-first list for coding agents
+- `docs/adr/`: why the system is built this way
+- `docs/specs/`: specs with acceptance criteria (template in `docs/specs/TEMPLATE.md`)
+- `docs/plans/`: state of work that spans sessions
 
 ## Tech Stack
 
