@@ -92,7 +92,14 @@ Check: `gh api repos/adityamparikh/customer-support-agent --jq .security_and_ana
 
 ## 6. Local agent permissions (your machine, not the repo)
 
-`/Users/adityaparikh/IdeaProjects/customer-support-agent/.claude/settings.local.json` pre-allows
-`Bash(git push:*)`, `Bash(git filter-branch:*)` and `Bash(gh repo create:*)`, which lets an agent
-skip the "Ask first" list in `CLAUDE.md`. Remove those three entries by hand, or with `/permissions`
-in Claude Code.
+`/Users/adityaparikh/IdeaProjects/customer-support-agent/.claude/settings.local.json` (untracked,
+ignored by `~/.config/git/ignore`) pre-allows commands that the "Ask first" list in `CLAUDE.md`
+says need a human:
+
+- `Bash(git push:*)`, `Bash(git filter-branch:*)`, `Bash(gh repo create:*)`: push and history rewrites.
+- `Bash(./mvnw install:*)` and `Bash(./mvnw failsafe:integration-test:*)`: these prefixes also match
+  `./mvnw install -Plive-it` and `./mvnw failsafe:integration-test -Plive-it`, which spend API credit.
+
+Remove the first three, and narrow the Maven ones (for example to exactly `Bash(./mvnw install)`),
+by hand or with `/permissions` in Claude Code. A worktree of this repo does not have that file, so
+it only affects sessions in the original checkout.
