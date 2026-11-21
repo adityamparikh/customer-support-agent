@@ -56,6 +56,10 @@ docs/specs/    specs with acceptance criteria; start new ones from docs/specs/TE
 docs/plans/    state of multi-session work (convention in docs/plans/README.md)
 .claude/commands/  /review, /live-it, /spec
 .github/       CI workflow (ci.yml), Dependabot, PR template
+pom.xml                   dependencies, Error Prone + Spotless config, the live-it profile
+.mvn/                     Maven wrapper pin (3.9.14) and jvm.config (jdk.compiler exports Error Prone needs)
+mvnw, mvnw.cmd            Maven wrapper scripts; always build with ./mvnw
+.env.example              shape of the gitignored .env (OPENAI_API_KEY, ANTHROPIC_API_KEY)
 generated-requests.http   IntelliJ HTTP client script for the multi-turn /chat cancellation flow (PAID when run)
 rag-comparison.md         Easy vs Naive vs Advanced RAG in LangChain4j; this repo uses Naive (ADR 0001)
 AINE-SETTINGS-TODO.md     GitHub settings the owner still has to apply
