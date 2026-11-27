@@ -5,8 +5,8 @@ import dev.langchain4j.carrental.customer.Customer;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class BookingService {
@@ -21,34 +21,31 @@ public class BookingService {
             CUSTOMER
     );
 
-    private static final Map<String, Booking> BOOKINGS = new HashMap<>() {{
-        put(BOOKING_NUMBER, BOOKING);
-    }};
+    // Imitating a DB table. This singleton bean is called from concurrent HTTP requests,
+    // so the map must be thread-safe.
+    private final Map<String, Booking> bookings = new ConcurrentHashMap<>(Map.of(BOOKING_NUMBER, BOOKING));
 
     public Booking getBookingDetails(String bookingNumber, String customerName, String customerSurname) {
-        ensureExists(bookingNumber, customerName, customerSurname);
-
-        // Imitating DB lookup
-        return BOOKINGS.get(bookingNumber);
+        return findBooking(bookingNumber, customerName, customerSurname);
     }
 
     public void cancelBooking(String bookingNumber, String customerName, String customerSurname) {
-        ensureExists(bookingNumber, customerName, customerSurname);
-
-        Booking booking = BOOKINGS.get(bookingNumber);
+        Booking booking = findBooking(bookingNumber, customerName, customerSurname);
         if (!booking.bookingBeginDate().isAfter(LocalDate.now())) {
             throw new IllegalStateException("Cannot cancel booking " + bookingNumber
                     + " because it has already started or completed");
         }
 
-        // Imitating booking cancellation
-        BOOKINGS.remove(bookingNumber);
+        // Imitating booking cancellation. Remove only the booking that was checked above,
+        // so two concurrent cancellations cannot both succeed.
+        if (!bookings.remove(bookingNumber, booking)) {
+            throw new BookingNotFoundException(bookingNumber);
+        }
     }
 
-    private void ensureExists(String bookingNumber, String customerName, String customerSurname) {
+    private Booking findBooking(String bookingNumber, String customerName, String customerSurname) {
         // Imitating DB lookup
-
-        Booking booking = BOOKINGS.get(bookingNumber);
+        Booking booking = bookings.get(bookingNumber);
         if (booking == null) {
             throw new BookingNotFoundException(bookingNumber);
         }
@@ -60,5 +57,6 @@ public class BookingService {
         if (!customer.surname().equals(customerSurname)) {
             throw new BookingNotFoundException(bookingNumber);
         }
+        return booking;
     }
 }
