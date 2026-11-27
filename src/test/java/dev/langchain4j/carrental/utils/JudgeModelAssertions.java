@@ -1,5 +1,6 @@
 package dev.langchain4j.carrental.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
@@ -102,29 +103,30 @@ public class JudgeModelAssertions {
             ChatResponse chatResponse = judgeModel.chat(chatRequest);
 
             String json = chatResponse.aiMessage().text();
+            ConditionAssessments conditionAssessments;
             try {
-                ConditionAssessments conditionAssessments = JSON_MAPPER.readValue(json, ConditionAssessments.class);
+                conditionAssessments = JSON_MAPPER.readValue(json, ConditionAssessments.class);
+            } catch (JsonProcessingException e) {
+                throw new IllegalStateException("Judge model returned an unparseable assessment: " + json, e);
+            }
 
-                List<String> failures = new ArrayList<>();
+            List<String> failures = new ArrayList<>();
 
-                for (ConditionAssessment assessment : conditionAssessments.conditionAssessments) {
-                    if (assessment.result != ConditionAssessmentResult.SATISFIED) {
-                        failures.add("""
-                                Condition %s: %s
-                                Reasoning: %s
-                                """.formatted(
-                                assessment.conditionIndex, conditions.get(assessment.conditionIndex),
-                                assessment.reasoning
-                        ));
-                    }
+            for (ConditionAssessment assessment : conditionAssessments.conditionAssessments) {
+                if (assessment.result != ConditionAssessmentResult.SATISFIED) {
+                    failures.add("""
+                            Condition %s: %s
+                            Reasoning: %s
+                            """.formatted(
+                            assessment.conditionIndex, conditions.get(assessment.conditionIndex),
+                            assessment.reasoning
+                    ));
                 }
+            }
 
-                if (!failures.isEmpty()) {
-                    fail("Some conditions were not satisfied for the text '%s':\n\n%s"
-                            .formatted(text, String.join("\n", failures)));
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+            if (!failures.isEmpty()) {
+                fail("Some conditions were not satisfied for the text '%s':\n\n%s"
+                        .formatted(text, String.join("\n", failures)));
             }
 
             return this;
